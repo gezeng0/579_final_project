@@ -44,15 +44,14 @@ const handleShortcut = () => {
   if (selectedText !== "") {
     const pageInfo = {
       title: document.title,
-      url: window.location.href
+      url: window.location.href,
+      author: getAuthor()
     };
 
     chrome.runtime.sendMessage({ action: "getCitation", selectedText, pageInfo}, response => {
       if (response) {
         copyToClipboard(response.citation);
         alert("Citation copied to clipboard:\n" + response.citation);
-
-        // console.log(isCmdPressed, isShiftPressed, isXPressed);
         // Reset the state of the keys after citation action is executed
         isCmdPressed = false;
         isShiftPressed = false;
@@ -71,4 +70,17 @@ const copyToClipboard = text => {
     .catch(err => {
       console.error('Error copying text: ', err);
     });
+};
+
+// Function to extract the author name from the webpage or fallback to default
+const getAuthor = () => {
+  const authorMetaTags = document.querySelectorAll('meta[name="author"]');
+  const articleAuthorMetaTags = document.querySelectorAll('meta[name="article_author"]');
+  if (authorMetaTags.length > 0) {
+    return authorMetaTags[0].getAttribute("content");
+  } else if (articleAuthorMetaTags.length > 0) {
+    return articleAuthorMetaTags[0].getAttribute("content");
+  } else {
+    return null; 
+  }
 };
